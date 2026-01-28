@@ -8,6 +8,24 @@
 
 #include "FileUtil.h"
 
+#include <bgfx/embedded_shader.h>
+#include <stdint.h>
+#include "shaders/glsl/s00_vertex.h"
+#include "shaders/glsl/s00_fragment.h"
+#include "shaders/essl/s00_vertex.h"
+#include "shaders/essl/s00_fragment.h"
+#undef BGFX_EMBEDDED_SHADER
+#define BGFX_EMBEDDED_SHADER(_name)                                                        \
+	{                                                                                      \
+		#_name,                                                                            \
+		{                                                                                  \
+			BGFX_EMBEDDED_SHADER_ESSL (bgfx::RendererType::OpenGLES,   _name)              \
+			BGFX_EMBEDDED_SHADER_GLSL (bgfx::RendererType::OpenGL,     _name)              \
+			{ bgfx::RendererType::Noop,  (const uint8_t*)"VSH\x5\x0\x0\x0\x0\x0\x0", 10 }, \
+			{ bgfx::RendererType::Count, NULL, 0 }                                         \
+		}                                                                                  \
+	}
+
 #define WNDW_WIDTH 1600
 #define WNDW_HEIGHT 900
 
@@ -33,7 +51,24 @@ namespace mg
         bgfx::ShaderHandle vsh = bgfx::createShader(vMem);
         bgfx::ShaderHandle fsh = bgfx::createShader(fMem);
         bgfx::ProgramHandle handle = bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */);
-        
+
+        return handle;
+    }
+
+    static const bgfx::EmbeddedShader s_embeddedShaders[] = {
+        BGFX_EMBEDDED_SHADER(s00_vertex),
+        BGFX_EMBEDDED_SHADER(s00_fragment),
+        BGFX_EMBEDDED_SHADER_END(),
+    };
+
+    static bgfx::ProgramHandle loadEmbeddedProgram(const char *vertName, const char *fragName)
+    {
+        bgfx::RendererType::Enum type = bgfx::getRendererType();
+
+        bgfx::ShaderHandle vsh = bgfx::createEmbeddedShader(s_embeddedShaders, type, vertName);
+        bgfx::ShaderHandle fsh = bgfx::createEmbeddedShader(s_embeddedShaders, type, fragName);
+        bgfx::ProgramHandle handle = bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */);
+
         return handle;
     }
 
@@ -60,7 +95,8 @@ namespace mg
 
         bgfx::init(bgfxInit);
 
-        bgfx::ProgramHandle m_program = loadProgram("game/material/showTex_vertex.glsl", "game/material/showTex_fragment.glsl");
+
+        bgfx::ProgramHandle m_program = loadEmbeddedProgram("s00_vertex", "s00_fragment");
 
         // bgfx::setViewRect(0, 0, 0, WNDW_WIDTH, WNDW_HEIGHT);
         const bgfx::ViewId v0 = 0;
