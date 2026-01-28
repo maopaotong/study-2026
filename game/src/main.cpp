@@ -177,11 +177,12 @@ namespace mg
         bgfx::renderFrame();
 
         bgfx::Init bgfxInit;
-        bgfxInit.type = bgfx::RendererType::Count; // Automatically choose a renderer.
+        bgfxInit.type = bgfx::RendererType::OpenGL;
         bgfxInit.platformData.nwh = glfwGetWin32Window(window);
         bgfxInit.resolution.width = WNDW_WIDTH;
         bgfxInit.resolution.height = WNDW_HEIGHT;
         bgfxInit.resolution.reset = BGFX_RESET_VSYNC;
+        bgfxInit.debug = true;        
         MyCallback callback;
         bgfxInit.callback = &callback;
         bgfx::init(bgfxInit);
@@ -198,7 +199,18 @@ namespace mg
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
-            bgfx::submit(v0, m_program);
+
+            const bgfx::Stats* stats = bgfx::getStats();
+            
+			bgfx::dbgTextPrintf(0, 2, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
+				, stats->width
+				, stats->height
+				, stats->textWidth
+				, stats->textHeight
+				);
+
+            //bgfx::submit(v0, m_program);
+            bgfx::touch(v0);
             bgfx::frame();
             glfwWaitEventsTimeout(0.01); // 16ms ≈ 60Hz
             counter++;
