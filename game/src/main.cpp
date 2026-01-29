@@ -13,10 +13,7 @@
 
 #include <bgfx/embedded_shader.h>
 #include <stdint.h>
-#include "shaders/glsl/s00_vertex.h"
-#include "shaders/glsl/s00_fragment.h"
-#include "shaders/essl/s00_vertex.h"
-#include "shaders/essl/s00_fragment.h"
+#include <bx/math.h>
 #undef BGFX_EMBEDDED_SHADER
 #define BGFX_EMBEDDED_SHADER(_name)                                                                                                                  \
     {                                                                                                                                                \
@@ -33,6 +30,25 @@
 
 namespace mg
 {
+    struct PosColorVertex
+    {
+        float x;
+        float y;
+        float z;
+        uint32_t abgr;
+    };
+
+    static PosColorVertex vertices[] = {
+        {-1.0f, 1.0f, 1.0f, 0xff000000},
+        {1.0f, 1.0f, 1.0f, 0xff0000ff},
+        {-1.0f, -1.0f, 1.0f, 0xff00ff00},
+    };
+
+    static const uint16_t tlist[] = {
+        0,
+        1,
+        2, //
+    };
     struct MyCallback : public bgfx::CallbackI
     {
         virtual void fatal(
@@ -134,10 +150,12 @@ namespace mg
         std::cout << msg << std::endl;
     }
 
-    static bgfx::ProgramHandle loadProgram(std::string vertFile, std::string fragFile)
+    static bgfx::ProgramHandle loadProgram(std::string vname, std::string fname, std::string group)
     {
-        const bgfx::Memory *vMem = FileUtil::load(vertFile);
-        const bgfx::Memory *fMem = FileUtil::load(fragFile);
+        std::string vfile = "build/game/generated/shaders/" + group + "/" + vname + "_vertex.sc.bin";
+        std::string ffile = "build/game/generated/shaders/" + group + "/" + fname + "_fragment.sc.bin";
+        const bgfx::Memory *vMem = FileUtil::load(vfile);
+        const bgfx::Memory *fMem = FileUtil::load(ffile);
         bgfx::ShaderHandle vsh = bgfx::createShader(vMem);
         bgfx::ShaderHandle fsh = bgfx::createShader(fMem);
         bgfx::ProgramHandle handle = bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */);
@@ -145,22 +163,22 @@ namespace mg
         return handle;
     }
 
-    static const bgfx::EmbeddedShader s_embeddedShaders[] = {
-        BGFX_EMBEDDED_SHADER(s00_vertex),
-        BGFX_EMBEDDED_SHADER(s00_fragment),
-        BGFX_EMBEDDED_SHADER_END(),
-    };
+    // static const bgfx::EmbeddedShader s_embeddedShaders[] = {
+    //     BGFX_EMBEDDED_SHADER(s00_vertex),
+    //     BGFX_EMBEDDED_SHADER(s00_fragment),
+    //     BGFX_EMBEDDED_SHADER_END(),
+    // };
 
-    static bgfx::ProgramHandle loadEmbeddedProgram(const char *vertName, const char *fragName)
-    {
-        bgfx::RendererType::Enum type = bgfx::getRendererType();
+    // static bgfx::ProgramHandle loadEmbeddedProgram(const char *vertName, const char *fragName)
+    // {
+    //     bgfx::RendererType::Enum type = bgfx::getRendererType();
 
-        bgfx::ShaderHandle vsh = bgfx::createEmbeddedShader(s_embeddedShaders, type, vertName);
-        bgfx::ShaderHandle fsh = bgfx::createEmbeddedShader(s_embeddedShaders, type, fragName);
-        bgfx::ProgramHandle handle = bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */);
+    //     bgfx::ShaderHandle vsh = bgfx::createEmbeddedShader(s_embeddedShaders, type, vertName);
+    //     bgfx::ShaderHandle fsh = bgfx::createEmbeddedShader(s_embeddedShaders, type, fragName);
+    //     bgfx::ProgramHandle handle = bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */);
 
-        return handle;
-    }
+    //     return handle;
+    // }
 
     int _main(int argc, char **argv)
     {
@@ -170,52 +188,64 @@ namespace mg
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         GLFWwindow *window = glfwCreateWindow(1024, 768, "Hello.bgfx", nullptr, nullptr);
 
-        bgfx::PlatformData pd;
-        pd.nwh = glfwGetWin32Window(window);
-        bgfx::setPlatformData(pd);
-
-        bgfx::renderFrame();
-
         bgfx::Init bgfxInit;
         bgfxInit.type = bgfx::RendererType::OpenGL;
         bgfxInit.platformData.nwh = glfwGetWin32Window(window);
         bgfxInit.resolution.width = WNDW_WIDTH;
         bgfxInit.resolution.height = WNDW_HEIGHT;
         bgfxInit.resolution.reset = BGFX_RESET_VSYNC;
-        bgfxInit.debug = true;        
+        bgfxInit.debug = true;
         MyCallback callback;
         bgfxInit.callback = &callback;
         bgfx::init(bgfxInit);
 
-        bgfx::ProgramHandle m_program = loadEmbeddedProgram("s00_vertex", "s00_fragment");
+        // bgfx::ProgramHandle m_program = loadEmbeddedProgram("s00_vertex", "s00_fragment");
+        bgfx::ProgramHandle m_program = loadProgram("s00", "s00", "glsl");
+        if (!bgfx::isValid(m_program))
+        {
+            log("Failed to load program!");
+            return -1;
+        }
 
         // bgfx::setViewRect(0, 0, 0, WNDW_WIDTH, WNDW_HEIGHT);
         const bgfx::ViewId v0 = 0;
         // bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
         bgfx::setViewClear(v0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x443355FF, 1.0f, 0);
-        bgfx::touch(v0);
         bgfx::setViewRect(v0, 0, 0, bgfx::BackbufferRatio::Equal);
+
+        bgfx::VertexLayout vlayout;
+        vlayout.begin()
+            .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+            .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+            .end();
+
+        bgfx::VertexBufferHandle vbh = bgfx::createVertexBuffer(bgfx::makeRef(vertices, sizeof(vertices)), vlayout);
+        bgfx::IndexBufferHandle ibh = bgfx::createIndexBuffer(bgfx::makeRef(tlist, sizeof(tlist)));
+        bgfx::setDebug(BGFX_DEBUG_TEXT | BGFX_DEBUG_STATS | BGFX_DEBUG_PROFILER);
+        // bgfx::touch(v0);
         unsigned int counter = 0;
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
+            const bx::Vec3 at = {0.0f, 0.0f, 0.0f};
+            const bx::Vec3 eye = {0.0f, 0.0f, 5.0f};
+            float view[16];
+            bx::mtxLookAt(view, eye, at);
+            float proj[16];
+            bx::mtxProj(proj, 60.0f, float(WNDW_WIDTH) / float(WNDW_HEIGHT), 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
+            bgfx::setViewTransform(0, view, proj);
+            const bgfx::Stats *stats = bgfx::getStats();
+            bgfx::dbgTextPrintf(0, 2, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters.", stats->width, stats->height, stats->textWidth, stats->textHeight);
+            bgfx::setVertexBuffer(0, vbh);
+            bgfx::setIndexBuffer(ibh);
 
-            const bgfx::Stats* stats = bgfx::getStats();
-            
-			bgfx::dbgTextPrintf(0, 2, 0x0f, "Backbuffer %dW x %dH in pixels, debug text %dW x %dH in characters."
-				, stats->width
-				, stats->height
-				, stats->textWidth
-				, stats->textHeight
-				);
-
-            //bgfx::submit(v0, m_program);
-            bgfx::touch(v0);
+            bgfx::submit(v0, m_program);
+            // bgfx::touch(v0);
             bgfx::frame();
             glfwWaitEventsTimeout(0.01); // 16ms ≈ 60Hz
             counter++;
         }
-
+        bgfx::destroy(m_program);
         bgfx::shutdown();
         glfwTerminate();
         log("Done.");

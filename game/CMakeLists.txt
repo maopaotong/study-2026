@@ -26,7 +26,7 @@ foreach(SHADER_TYPE fragment vertex)
 foreach(RENDER_TYPE glsl essl)
 foreach(P_NAME s00)
         set(SHADER_IN ${SHADER_DIR}/${P_NAME}_${SHADER_TYPE}.sc)
-        set(SHADER_OUT ${GEN_DIR}/shaders/${RENDER_TYPE}/${P_NAME}_${SHADER_TYPE}.h)
+        set(SHADER_OUT ${GEN_DIR}/shaders/${RENDER_TYPE}/${P_NAME}_${SHADER_TYPE}.sc.bin)
         if(${RENDER_TYPE} STREQUAL "glsl") 
             set(PROFILE 130)
         elseif(${RENDER_TYPE} STREQUAL "essl")
@@ -44,7 +44,7 @@ foreach(P_NAME s00)
             -i ${SHADER_DIR}
             -i ${BGFX_SHADER_INCLUDE}
             --varyingdef ${VARYING}
-            --bin2c ${P_NAME}_${SHADER_TYPE}_${RENDER_TYPE}
+#--bin2c ${P_NAME}_${SHADER_TYPE}_${RENDER_TYPE}
             DEPENDS ${SHADER_IN} ${VARYING}    
             )        
         list(APPEND SHADER_OUTPUTS ${SHADER_OUT})            
