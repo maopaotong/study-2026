@@ -1,6 +1,10 @@
 
 #define BGFX_CONFIG_DEBUG 1
-#include "mapgen.h"
+#include <iostream>
+#include <bx/bx.h>
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
+#include <GLFW/glfw3.h>
 #include <bimg/bimg.h>
 #include <string>
 
