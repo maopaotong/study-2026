@@ -24,111 +24,14 @@
 #include "DualMesh.h"
 #include "ShaderUtil.h"
 #include "LogUtil.h"
+#include "Entity00.h"
+#include "Entity01.h"
 
 #define WNDW_WIDTH 1600
 #define WNDW_HEIGHT 900
 
 namespace mg
-{
-    struct PosColorVertex
-    {
-        float x;
-        float y;
-        float z;
-        uint32_t abgr;
-    };
-
-    struct Entity
-    {
-        std::string shader;
-        bgfx::ProgramHandle program;
-        bgfx::VertexLayout vlayout;
-        bgfx::VertexBufferHandle vbh;
-        bgfx::IndexBufferHandle ibh;
-        Entity(std::string shader) : shader(shader)
-        {
-        }
-        virtual int init()
-        {
-            program = ShaderUtil::loadProgram(shader, shader, "glsl");
-            if (!bgfx::isValid(program))
-            {
-                LogUtil::log("Failed to load program!");
-                return -1;
-            }
-            return 0;
-        }
-
-        void submit(int viewId)
-        {
-
-            bgfx::setVertexBuffer(0, vbh);
-            bgfx::setIndexBuffer(ibh);
-            bgfx::submit(viewId, program);
-        }
-        void destroy()
-        {
-            bgfx::destroy(vbh);
-            bgfx::destroy(ibh);
-            bgfx::destroy(program);
-        }
-    };
-
-    struct Entity00 : public Entity
-    {
-
-        static inline PosColorVertex vertices[] = {
-            {-1.0f, 1.0f, 1.0f, 0xff000000},
-            {1.0f, 1.0f, 1.0f, 0xff0000ff},
-            {-1.0f, -1.0f, 1.0f, 0xff00ff00},
-            {1.0f, -1.0f, 1.0f, 0xff00ffff},
-            {-1.0f, 1.0f, -1.0f, 0xffff0000},
-            {1.0f, 1.0f, -1.0f, 0xffff00ff},
-            {-1.0f, -1.0f, -1.0f, 0xffffff00},
-            {1.0f, -1.0f, -1.0f, 0xffffffff},
-        };
-
-        static inline const uint16_t tlist[] = {
-            // clang-format off
-        0, 1, 2,
-        1, 3, 2,
-        4, 6, 5,
-        5, 6, 7,
-        0, 2, 4,
-        4, 2, 6,
-        1, 5, 3,
-        5, 7, 3,
-        0, 4, 1,
-        4, 5, 1,
-        2, 3, 6,
-        6, 3, 7,
-            // clang-format on
-        };
-        Entity00() : Entity("s00")
-        {
-        }
-        int init() override
-        {
-            int err = Entity::init();
-            if (err)
-            {
-                return err;
-            }
-
-            vlayout.begin()
-                .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-                .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-                .end();
-
-            vbh = bgfx::createVertexBuffer(bgfx::makeRef(vertices, sizeof(vertices)), vlayout);
-            ibh = bgfx::createIndexBuffer(bgfx::makeRef(tlist, sizeof(tlist)));
-            return 0;
-        }
-    };
-    struct Entity2 : public Entity
-    {
-    };
-
+{    
     static void glfw_errorCallback(int error, const char *description)
     {
         // fprintf(stderr, "GLFW error %d: %s\n", error, description);
@@ -172,9 +75,15 @@ namespace mg
         unsigned int counter = 0;
         bgfx::TextureHandle tex = ColorMap::createTexture();
         Entity00 entity00;
+        Entity01 entity01;
         if (entity00.init())
         {
             LogUtil::log("Failed to initialize entity00!");
+            return -1;
+        }
+        if (entity01.init())
+        {
+            LogUtil::log("Failed to initialize entity01!");
             return -1;
         }
 
@@ -211,13 +120,15 @@ namespace mg
                 bgfx::setTexture(0, bgfx::createUniform("s_colorMap", bgfx::UniformType::Sampler), tex);
             }
 
-            entity00.submit(0);
+            //entity00.submit(0);
+            entity01.submit(0);
 
             bgfx::frame();
             glfwWaitEventsTimeout(0.01); // 16ms ≈ 60Hz
             counter++;
         }
         entity00.destroy();
+        entity01.destroy();
         bgfx::shutdown();
         glfwTerminate();
         LogUtil::log("Done.");

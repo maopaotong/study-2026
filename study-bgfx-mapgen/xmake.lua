@@ -74,5 +74,5 @@ target("game")
     add_files("shaders/s**.frag", {rule = "bgfx_shader"})
     add_packages("bgfx", "glfw", "bx")    
     add_includedirs("include")
-    set_languages("c++17")
+    set_languages("c++20")
     
