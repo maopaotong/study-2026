@@ -12,6 +12,9 @@ namespace mg
         bgfx::VertexLayout vlayout;
         bgfx::VertexBufferHandle vbh;
         bgfx::IndexBufferHandle ibh;
+        unsigned int counter = 0;
+        float mtx1[16];
+        float mtx2[16];
         Entity(std::string shader) : shader(shader)
         {
         }
@@ -26,7 +29,7 @@ namespace mg
             return 0;
         }
 
-        void submit(int viewId)
+        virtual void submit(int viewId)
         {
 
             bgfx::setVertexBuffer(0, vbh);

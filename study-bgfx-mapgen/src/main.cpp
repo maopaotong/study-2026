@@ -37,12 +37,7 @@ namespace mg
         // fprintf(stderr, "GLFW error %d: %s\n", error, description);
         std::cout << "GLFW error:" << description << std::endl;
     }
-    
-
-    static void setupMesh(DualMap &map)
-    {
-        DualMesh &mesh = map.mesh;
-    }
+   
 
     int _main(int argc, char **argv)
     {
@@ -71,9 +66,8 @@ namespace mg
         bgfx::setViewRect(v0, 0, 0, bgfx::BackbufferRatio::Equal);
 
         bgfx::setDebug(BGFX_DEBUG_TEXT | BGFX_DEBUG_STATS | BGFX_DEBUG_PROFILER);
-        // bgfx::touch(v0);
-        unsigned int counter = 0;
-        bgfx::TextureHandle tex = ColorMap::createTexture();
+        // bgfx::touch(v0);        
+        
         Entity00 entity00;
         Entity01 entity01;
         if (entity00.init())
@@ -103,29 +97,11 @@ namespace mg
                 bgfx::setViewTransform(0, view, proj);
             }
 
-            { // model matrix
-
-                float mtx1[16];
-                bx::mtxScale(mtx1, 0.5f);
-
-                float mtx2[16];
-                bx::mtxRotateXY(mtx2, counter * 0.01f, counter * 0.01f);
-
-                bx::mtxMul(mtx2, mtx2, mtx1);
-
-                bgfx::setTransform(mtx2);
-            }
-            { // texture
-
-                bgfx::setTexture(0, bgfx::createUniform("s_colorMap", bgfx::UniformType::Sampler), tex);
-            }
-
-            //entity00.submit(0);
             entity01.submit(0);
+            entity00.submit(0);
 
             bgfx::frame();
-            glfwWaitEventsTimeout(0.01); // 16ms ≈ 60Hz
-            counter++;
+            glfwWaitEventsTimeout(0.01); // 16ms ≈ 60Hz            
         }
         entity00.destroy();
         entity01.destroy();

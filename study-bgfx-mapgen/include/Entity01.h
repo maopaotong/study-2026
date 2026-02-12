@@ -77,10 +77,18 @@ namespace mg
                 .add(bgfx::Attrib::TexCoord1, 2, bgfx::AttribType::Float)
                 .end();
 
-            vbh = bgfx::createVertexBuffer(bgfx::makeRef(vData, sizeof(vData)), vlayout);
-            ibh = bgfx::createIndexBuffer(bgfx::makeRef(iData, sizeof(iData)));
-
+            vbh = bgfx::createVertexBuffer(bgfx::makeRef(vData, sizeof(Vertex)*vCount), vlayout);
+            ibh = bgfx::createIndexBuffer(bgfx::makeRef(iData, sizeof(unsigned int) * iCount));
+            bx::mtxScale(mtx1, 0.5f);            
             return 0;
+        }
+        void submit(int viewId) override
+        {
+            bx::mtxRotateXY(mtx2, counter * 0.01f, counter * 0.01f);
+            bx::mtxMul(mtx2, mtx2, mtx1);
+            bgfx::setTransform(mtx2);
+            counter++;
+            Entity::submit(viewId);
         }
     };
 
