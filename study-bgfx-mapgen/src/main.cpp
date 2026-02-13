@@ -85,7 +85,7 @@ namespace mg
         // main loop
         while (!glfwWindowShouldClose(window))
         {
-            glfwPollEvents();
+            glfwPollEvents();            
             list.submit(0);
 
             bgfx::frame();

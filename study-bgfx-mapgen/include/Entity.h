@@ -38,6 +38,7 @@ namespace mg
         {
             bgfx::setVertexBuffer(0, vbh);
             bgfx::setIndexBuffer(ibh);
+            bgfx::setState(BGFX_STATE_DEFAULT | BGFX_STATE_PT_LINES);
             bgfx::submit(viewId, program);
         }
         virtual void destroy() override
