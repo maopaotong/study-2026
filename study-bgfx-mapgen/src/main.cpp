@@ -26,6 +26,7 @@
 #include "LogUtil.h"
 #include "Entity00.h"
 #include "Entity01.h"
+#include "ListRenderable.h"
 
 #define WNDW_WIDTH 1600
 #define WNDW_HEIGHT 900
@@ -67,18 +68,10 @@ namespace mg
         bgfx::setDebug(BGFX_DEBUG_TEXT | BGFX_DEBUG_STATS | BGFX_DEBUG_PROFILER);
         // bgfx::touch(v0);
 
-        Entity00 entity00;
-        Entity01 entity01;
-        if (entity00.init())
-        {
-            LogUtil::log("Failed to initialize entity00!");
-            return -1;
-        }
-        if (entity01.init())
-        {
-            LogUtil::log("Failed to initialize entity01!");
-            return -1;
-        }
+        ListRenderable list ;
+        list.list.push_back(new Entity00());
+        list.list.push_back(new Entity01());        
+        list.init();
 
         const bx::Vec3 at = {0.0f, 0.0f, 0.0f};
         const bx::Vec3 eye = {0.0f, 0.0f, 5.0f};
@@ -93,15 +86,14 @@ namespace mg
         while (!glfwWindowShouldClose(window))
         {
             glfwPollEvents();
-            entity00.submit(0);
-            entity01.submit(0);
+            list.submit(0);
 
             bgfx::frame();
             glfwWaitEventsTimeout(0.01); // 16ms ≈ 60Hz
-        }//end while
+        } // end while
 
-        entity00.destroy();
-        entity01.destroy();
+        list.destroy();
+        // entity01.destroy();
         bgfx::shutdown();
         glfwTerminate();
         LogUtil::log("Done.");

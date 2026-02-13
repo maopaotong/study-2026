@@ -79,8 +79,8 @@ namespace mg
                 .add(bgfx::Attrib::TexCoord1, 2, bgfx::AttribType::Float)
                 .end();
 
-            vbh = bgfx::createVertexBuffer(bgfx::makeRef(vData, sizeof(Vertex)*vCount), vlayout);
-            ibh = bgfx::createIndexBuffer(bgfx::makeRef(iData, sizeof(unsigned int) * iCount));
+            vbh = bgfx::createVertexBuffer(bgfx::makeRef(vData, sizeof(Vertex)*vCount, [](void * mData, void * uData){ delete[] static_cast<Vertex*>(mData); }), vlayout);
+            ibh = bgfx::createIndexBuffer(bgfx::makeRef(iData, sizeof(unsigned int) * iCount,[](void * mData, void * uData){ delete[] static_cast<unsigned int*>(mData); }));
             bx::mtxScale(mtx1, 0.5f);            
 
             uHandle = bgfx::createUniform("s_colorMap", bgfx::UniformType::Sampler);
