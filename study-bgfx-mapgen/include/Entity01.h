@@ -21,6 +21,8 @@ namespace mg
             float v1;
         };
 
+        bgfx::TextureHandle texHandle;
+        bgfx::UniformHandle uHandle;
         Entity01() : Entity("s01")
         {
         }
@@ -80,6 +82,9 @@ namespace mg
             vbh = bgfx::createVertexBuffer(bgfx::makeRef(vData, sizeof(Vertex)*vCount), vlayout);
             ibh = bgfx::createIndexBuffer(bgfx::makeRef(iData, sizeof(unsigned int) * iCount));
             bx::mtxScale(mtx1, 0.5f);            
+
+            uHandle = bgfx::createUniform("s_colorMap", bgfx::UniformType::Sampler);
+            texHandle = ColorMap::createTexture();
             return 0;
         }
         void submit(int viewId) override
@@ -87,6 +92,8 @@ namespace mg
             bx::mtxRotateXY(mtx2, counter * 0.01f, counter * 0.01f);
             bx::mtxMul(mtx2, mtx2, mtx1);
             bgfx::setTransform(mtx2);
+            //
+            bgfx::setTexture(0, uHandle, texHandle);
             counter++;
             Entity::submit(viewId);
         }

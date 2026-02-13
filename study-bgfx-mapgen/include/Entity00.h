@@ -43,15 +43,12 @@ namespace mg
         };
 
         
-        bgfx::TextureHandle tex;
-        bgfx::UniformHandle uColorMap;
-
+        
         Entity00() : Entity("s00")
         {
         }
         int init() override
-        {
-            tex = ColorMap::createTexture();
+        {            
             int err = Entity::init();
             if (err)
             {
@@ -67,7 +64,7 @@ namespace mg
             ibh = bgfx::createIndexBuffer(bgfx::makeRef(tlist, sizeof(tlist)));
             
             bx::mtxScale(mtx1, 0.5f);            
-            uColorMap = bgfx::createUniform("s_colorMap", bgfx::UniformType::Sampler);
+            
             return 0;
         }
 
@@ -76,7 +73,7 @@ namespace mg
             bx::mtxRotateXY(mtx2, counter * 0.01f, counter * 0.01f);
             bx::mtxMul(mtx2, mtx2, mtx1);
             bgfx::setTransform(mtx2);
-            bgfx::setTexture(0, uColorMap, tex);
+            
             counter++;
             Entity::submit(viewId);
         }
