@@ -71,8 +71,8 @@ namespace mg
         // bgfx::touch(v0);
 
         ListRenderable list;
-        list.list.push_back(new Entity00());
-        // list.list.push_back(new Entity01());
+        //list.list.push_back(new Entity00());
+        list.list.push_back(new Entity01());
         list.list.push_back(new Entity02());
 
         list.init();

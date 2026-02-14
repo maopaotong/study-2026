@@ -7,8 +7,21 @@ namespace mg
     struct MtxUtil
     {
 
-        // re write function from bx, bx::mtxLookAt(view, eye, at, up, handedness);
-        // bx::mtxLookAt does not work properly, x point to left side of the screen.
+        /*
+        re-write function from bx, bx::mtxLookAt(view, eye, at, up, handedness);
+        bx::mtxLookAt does not work properly, x point to left side of the screen.
+        below method work with setState with mask: BGFX_STATE_CULL_CW, it's saying that CCW-order of triangle vertex index data.
+
+                      y ^
+                        |
+                        |
+                        +--------> x
+                     ↙   
+                  ↙ 
+              z 
+
+        */
+
         static void mtxLookAt(float *_result, const bx::Vec3 &_eye, const bx::Vec3 &_at, const bx::Vec3 &_up)
         {
 
